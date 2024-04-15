@@ -1,0 +1,22 @@
+import sqlite3
+
+conn = sqlite3.connect('sqlite_practice')
+cursor = conn.cursor()
+
+conn.execute('''create table if not exists people
+               (first_name text, last_name text)''')
+
+names = [("rodrick", "watson"),
+         ("roger", "hom"),
+         ("petri", "halomen"),
+         ("jussi", ""),
+         ("james", "Mcann")]
+
+cursor.executemany('''insert into people (first_name, last_name) values (?, ?)
+                    ''', names)
+
+
+cursor.commit()
+
+cursor.close()
+conn.close()
