@@ -1,0 +1,54 @@
+import sqlite3
+
+try:
+    # connects to database
+    conn = sqlite3.connect('example.db')
+    # creates a curser object
+    cursor = conn.cursor()
+
+    # execute sql statements and creating table
+    cursor.execute("CREATE TABLE IF NOT EXISTS users"
+                   "(id INTEGER PRIMARY key, name TEXT, age INTEGER)")
+
+    # inserting new data into table
+    cursor.execute("INSERT INTO users(name,age) VALUES (?,?)", ('alice', 30))
+    cursor.execute("INSERT INTO users(name,age) VALUES (?,?)", ('bob', 30))
+    cursor.execute("INSERT INTO users(name,age) VALUES (?,?)", ('charlie', 30))
+    # commits the changes that you made
+    conn.commit()
+    # query the database
+    cursor.execute("SELECT * FROM users")
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
+
+    # update a record
+    cursor.execute("update users set age = ? where name = ?", ('bob', 30))
+    conn.commit()
+    print("\nAfter updating Bobs age:")
+    cursor.execute("SELECT * FROM users")
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
+
+    # delete a record
+    cursor.execute("delete from users where name = ?", ('charlie',))
+    conn.commit()
+    print("\nAfter deleting Charlies age:")
+    cursor.execute("SELECT * FROM users")
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
+
+    cursor.execute("select * from users where age > ?", (30,))
+    print("\nusers older than 30:")
+    rows = cursor.fetchall()
+    for row in rows:
+        print("row")
+
+except sqlite3.Error as e:
+    # rollback transition if there's an error
+    conn.rollback()
+    print("Error", e)
+finally:
+    conn.close()
