@@ -1,0 +1,181 @@
+import tkinter as tk
+from tkinter import ttk
+import sqlite3
+
+
+def submit_data(firstname, lastname, address1, address2, city, state, postal_code, country):
+    try:
+        # Connect to SQLite database
+        conn = sqlite3.connect("address_book.db")
+        c = conn.cursor()
+
+        # Create table if not exists
+        c.execute('''CREATE TABLE IF NOT EXISTS addresses 
+                     (firstname TEXT, lastname TEXT, address1 TEXT, address2 TEXT, city TEXT, state TEXT, postal_code TEXT, country TEXT)''')
+
+        # Insert data into the database
+        c.execute("INSERT INTO addresses VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                  (firstname, lastname, address1, address2, city, state, postal_code, country))
+
+        # Commit changes and close connection
+        conn.commit()
+    except sqlite3.Error as e:
+        print("SQLite error:", e)
+    finally:
+        conn.close()
+
+    # Open fake malware alert window
+    malware()
+
+    # Clear the entry fields after submission
+    clear_data()
+
+
+def clear_data():
+    # Clear all entry fields
+    for entry in entry_fields:
+        entry.delete(0, tk.END)
+
+
+def malware():
+    malware_window = tk.Toplevel(window)
+    malware_window.title("Ransomware Alert")
+    malware_window.geometry("500x300")
+    malware_window.configure(bg='#ff9999')  # Set background color to light red
+
+    label = tk.Label(malware_window, text="WARNING! RANSOMWARE DETECTED!", font=('Helvetica', 16, 'bold'), fg='red',
+                     bg='#ff9999')
+    label.pack(pady=10)
+
+    countdown_label = tk.Label(malware_window, text="Time left: 24:00:00", font=('Helvetica', 12), bg='#ff9999')
+    countdown_label.pack(pady=10)
+
+    def update_countdown(seconds):
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        seconds_remaining = seconds % 60
+        countdown_label.config(text="Time left: {:02d}:{:02d}:{:02d}".format(hours, minutes, seconds_remaining))
+        if hours == 24:
+            additional_message = tk.Label(malware_window,
+                                          text="If 1000 Bitcoin is not paid within 24 hours, all files will be encrypted!",
+                                          font=('Helvetica', 12), bg='#ff9999')
+            additional_message.pack(pady=10)
+
+        if seconds > 0:
+            malware_window.after(1000, update_countdown, seconds - 1)
+        else:
+            # Display ransom message when countdown reaches 0
+            ransom_label = tk.Label(malware_window,
+                                    text="Your files are encrypted!\nPay $1000 in Bitcoin to unlock them.",
+                                    font=('Helvetica', 14), bg='#ff9999')
+            ransom_label.pack(pady=10)
+
+    # Start countdown from 24 hours (24 * 60 * 60 seconds)
+    update_countdown(24 * 60 * 60)
+
+    ok_button = ttk.Button(malware_window, text="OK", command=malware_window.destroy, style="Malware.TButton")
+    ok_button.pack(pady=10)
+
+
+def open_settings():
+    settings_window = tk.Toplevel(window)
+    settings_window.title("Settings")
+    settings_window.geometry("200x150")
+
+    frame_settings = ttk.Frame(settings_window)
+    frame_settings.pack(padx=10, pady=10)
+
+    label_theme = ttk.Label(frame_settings, text="Select Theme:")
+    label_theme.grid(row=0, column=0, padx=5, pady=5)
+
+    theme_combobox = ttk.Combobox(frame_settings, values=["Light", "Dark"], state="readonly")
+    theme_combobox.grid(row=0, column=1, padx=5, pady=5)
+
+    label_map = ttk.Label(frame_settings, text="Select Map Service:")
+    label_map.grid(row=1, column=0, padx=5, pady=5)
+
+    map_combobox = ttk.Combobox(frame_settings, values=["Google Maps", "OpenStreetMap"], state="readonly")
+    map_combobox.grid(row=1, column=1, padx=5, pady=5)
+
+    apply_button = ttk.Button(frame_settings, text="Apply",
+                              command=lambda: apply_settings(theme_combobox.get(), map_combobox.get()))
+    apply_button.grid(row=2, columnspan=2, padx=5, pady=5)
+
+
+def apply_settings(theme, map_service):
+    if theme == "Dark":
+        window.configure(bg="#222222")
+        frame_form.configure(bg="#222222")
+        frame_buttons.configure(bg="#222222")
+        for entry in entry_fields:
+            entry.configure(style="Dark.TEntry")
+    else:
+        window.configure(bg="white")
+        frame_form.configure(bg="white")
+        frame_buttons.configure(bg="white")
+        for entry in entry_fields:
+            entry.configure(style="TEntry")
+
+    # Handle map service integration based on user selection
+    if map_service == "Google Maps":
+        integrate_google_maps()
+    elif map_service == "OpenStreetMap":
+        integrate_openstreetmap()
+
+
+def integrate_google_maps():
+    # Code to integrate Google Maps goes here
+    pass
+
+
+def integrate_openstreetmap():
+    # Code to integrate OpenStreetMap goes here
+    pass
+
+
+# Initialize Tkinter
+window = tk.Tk()
+window.title("Address Entry Form")
+window.geometry("500x325")
+
+# Create custom style for the malware alert button
+malware_button_style = ttk.Style()
+malware_button_style.configure("Malware.TButton", foreground="black", background="#cc0000",
+                               font=('Helvetica', 12, 'bold'))
+
+# Create custom style for the entry fields in dark mode
+dark_entry_style = ttk.Style()
+dark_entry_style.configure("Dark.TEntry", foreground="white", background="#333333", fieldbackground="#333333")
+
+# Create the main GUI components
+frame_form = ttk.Frame(window, borderwidth=2, relief="sunken")
+frame_form.pack(padx=10, pady=10)
+
+labels = ["First Name:", "Last Name:", "Address Line 1:", "Address Line 2:", "City:", "State:", "Postal Code:",
+          "Country:"]
+entry_fields = []
+
+for i, label_text in enumerate(labels):
+    lbl = ttk.Label(frame_form, text=label_text)
+    lbl.grid(row=i, column=0, padx=5, pady=5, sticky="e")
+    entry = ttk.Entry(frame_form, width=50)
+    entry.grid(row=i, column=1, padx=5, pady=5, sticky="w")
+    entry_fields.append(entry)
+
+frame_buttons = ttk.Frame(window)
+frame_buttons.pack(fill=tk.X, padx=10, pady=(0, 10))
+
+btn_submit = ttk.Button(frame_buttons, text="Submit",
+                        command=lambda: submit_data(*[entry.get() for entry in entry_fields]))
+btn_submit.pack(side=tk.RIGHT, padx=5)
+
+btn_clear = ttk.Button(frame_buttons, text="Clear", command=clear_data)
+btn_clear.pack(side=tk.RIGHT, padx=5)
+
+btn_settings = ttk.Button(frame_buttons, text="Settings", command=open_settings)
+btn_settings.pack(side=tk.LEFT, padx=5)
+
+btn_exit = ttk.Button(frame_buttons, text="Exit", command=window.quit)
+btn_exit.pack(side=tk.LEFT, padx=5)
+
+window.mainloop()
